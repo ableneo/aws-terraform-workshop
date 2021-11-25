@@ -32,3 +32,13 @@ variable "loadbalancer_arn" {
   type        = string
   description = "LB ARN"
 }
+variable "vpc_id" {
+  type        = string
+  description = "VPC ID"
+}
+variable "subnets" {
+  type        = list(string)
+}
+variable "security_group_id" {
+  type        = string
+}

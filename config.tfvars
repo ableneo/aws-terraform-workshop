@@ -1,2 +1,10 @@
 region = "eu-central-1"
 cluster_name = "xco-cluster"
+loadbalancer_name = "xco-lb"
+service_name = "xco-backend"
+image_tag = "latest"
+image_name = "aws-terraform-workshop-xco"
+container_port = 8080
+container_name = "backend"
+app_name = "xco_app"
+frontend_app_repo = "https://github.com/ableneo/aws-terraform-workshop-frontend"

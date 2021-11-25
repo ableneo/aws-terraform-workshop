@@ -23,9 +23,10 @@ module "loadbalancer" {
   source = "./backend/loadbalancer"
 
   lb_name = var.loadbalancer_name
+  region = var.region
 }
 
-module "app" {
+module "backend-app" {
   source = "./backend/app"
 
   cluster_id = module.ecs-cluster.cluster_id
@@ -35,4 +36,16 @@ module "app" {
   image_tag = var.image_tag
   loadbalancer_arn = module.loadbalancer.loadbalancer_arn
   service_name = var.service_name
+  vpc_id = module.loadbalancer.vpc_id
+  subnets = module.loadbalancer.subnets
+  security_group_id = module.loadbalancer.security_group_id
+}
+
+module "frontend-app" {
+  source = "./frontend"
+
+  app_name = var.app_name
+  backend_url = module.loadbalancer.loadbalancer_url
+  git_repo = var.frontend_app_repo
+  git_access_token = var.git_access_token
 }

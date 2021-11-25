@@ -3,14 +3,34 @@ resource "aws_ecr_repository" "app_repo" {
   image_tag_mutability = "MUTABLE"
 }
 
+resource "aws_iam_role" "task_execution_role" {
+  name                = "${var.service_name}_role"
+  managed_policy_arns = ["arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"]
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "ecs-tasks.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
+
 resource "aws_ecs_task_definition" "app_task_definition" {
-  network_mode             = "host"
+  network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = 256
   memory                   = 512
+  task_role_arn            = aws_iam_role.task_execution_role.arn
+  execution_role_arn       = aws_iam_role.task_execution_role.arn
   container_definitions = jsonencode([{
     name        = var.container_name
-    image       = "${aws_ecr_repository.app_repo.repository_url}/${var.image_name}:${var.image_tag}"
+    image       = "${aws_ecr_repository.app_repo.repository_url}:${var.image_tag}"
     essential   = true
     portMappings = [{
       protocol      = "tcp"
@@ -24,8 +44,10 @@ resource "aws_ecs_task_definition" "app_task_definition" {
 
 resource "aws_lb_target_group" "app_tg" {
   name     = "${var.service_name}-tg"
-  port     = 80
+  port     = var.container_port
   protocol = "HTTP"
+  vpc_id = var.vpc_id
+  target_type = "ip"
 }
 
 resource "aws_ecs_service" "app_service" {
@@ -37,6 +59,12 @@ resource "aws_ecs_service" "app_service" {
   deployment_maximum_percent         = 200
   launch_type                        = "FARGATE"
   scheduling_strategy                = "REPLICA"
+
+  network_configuration {
+    subnets = var.subnets
+    security_groups = [var.security_group_id]
+    assign_public_ip = true
+  }
 
   load_balancer {
     target_group_arn = aws_lb_target_group.app_tg.arn
@@ -56,3 +84,4 @@ resource "aws_lb_listener" "front_end" {
     target_group_arn = aws_lb_target_group.app_tg.arn
   }
 }
+
