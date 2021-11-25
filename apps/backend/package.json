@@ -1,0 +1,12 @@
+{
+  "name": "backend_app",
+  "version": "1.0.0",
+  "author": "Marek Hornak <marek.hornak@ableneo.com>",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "4.17.1"
+  }
+}
