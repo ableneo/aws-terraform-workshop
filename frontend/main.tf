@@ -1,6 +1,6 @@
 resource "aws_amplify_app" "frontend_app" {
   name         = var.app_name
-  repository   = "${var.git_repo}"
+  repository   = var.git_repo
   access_token = var.git_access_token
 
   # The default build_spec added by the Amplify Console for React.
